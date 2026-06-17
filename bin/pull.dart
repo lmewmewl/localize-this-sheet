@@ -64,15 +64,22 @@ Future<void> _pull() async {
     }
   }
 
+  // Locales in sheet but not in config — auto-include if they have data.
+  final extraLocales = localeColumnMap.keys
+      .where((l) => !config.locales.contains(l))
+      .toList();
+
+  final allLocales = [...config.locales, ...extraLocales];
+
   final localeData = <String, ArbData>{
-    for (final l in config.locales) l: ArbData(),
+    for (final l in allLocales) l: ArbData(),
   };
 
   for (final row in dataRows) {
     final key = row.isNotEmpty ? row[0].trim() : '';
     if (key.isEmpty) continue;
 
-    for (final locale in config.locales) {
+    for (final locale in allLocales) {
       final colIdx = localeColumnMap[locale]!;
       localeData[locale]![key] = colIdx < row.length ? row[colIdx] : '';
     }
@@ -87,8 +94,21 @@ Future<void> _pull() async {
     return;
   }
 
+  // Only write extra locales that have at least one non-empty translation.
+  final localesWithData = extraLocales
+      .where((l) => localeData[l]!.values.any((v) => v.isNotEmpty))
+      .toList();
+
+  if (localesWithData.isNotEmpty) {
+    stdout.writeln(
+      'New locales found in sheet: ${localesWithData.join(', ')}. Creating ARB files.',
+    );
+  }
+
+  final localesToWrite = [...config.locales, ...localesWithData];
+
   stdout.writeln('Writing ARB files to ${config.arbDir} ...');
-  for (final locale in config.locales) {
+  for (final locale in localesToWrite) {
     final data = localeData[locale]!;
     writeArb(config.arbDir, locale, data);
     stdout.writeln('  app_$locale.arb — ${data.length} keys written');

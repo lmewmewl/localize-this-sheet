@@ -126,6 +126,12 @@ Behavior:
 - Uses the first row as header; matches column names (case-insensitive) to configured `locales`.
 - Writes/overwrites `app_{locale}.arb` for each locale as pretty-printed JSON (2-space indent).
 - Skips rows with an empty key cell.
+- **Auto-creates** `app_{locale}.arb` for any sheet column not listed in `L10N_LOCALES`, if that column has at least one non-empty translation.
+- **Does not update `.env`** — after a new ARB file is auto-created, add the locale to `L10N_LOCALES` manually so future `push` and `pull` runs include it:
+
+  ```dotenv
+  L10N_LOCALES=en,th,de
+  ```
 
 ---
 
@@ -139,7 +145,7 @@ Behavior:
 | logoutButton    | Log Out             | ออกจากระบบ        |
 ```
 
-Column order doesn't matter — the tool matches by header name. Extra columns are ignored.
+Column order doesn't matter — the tool matches by header name. Columns not in `L10N_LOCALES` are auto-pulled if they contain data (see [Pull behavior](#pull-sheet--local-arb) above).
 
 ---
 

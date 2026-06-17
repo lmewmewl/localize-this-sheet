@@ -147,7 +147,9 @@ rm ~/.config/l10n_this_sheet/credentials.json
 
 ## Sheet Format
 
-The sheet header row is written by `push` and read by `pull`. Column order does not matter — columns are matched by name (case-insensitive). Extra columns are ignored.
+The sheet header row is written by `push` and read by `pull`. Column order does not matter — columns are matched by name (case-insensitive).
+
+If a column exists in the sheet but is **not** in `L10N_LOCALES`, `pull` will automatically create an ARB file for it — but only if at least one translation cell in that column is non-empty. The `.env` file is **not** updated automatically. Add the new locale to `L10N_LOCALES` manually so future `push` and `pull` runs include it consistently.
 
 ```
 | Key             | EN             | TH                |
@@ -182,7 +184,9 @@ dart run l10n_this_sheet:pull   # Google Sheet → local ARB
 - Matches columns to locales by header name (case-insensitive).
 - Skips rows with a blank key (column A).
 - **Aborts** if all rows have blank keys — prevents silent overwrite with empty data.
-- Overwrites `app_{locale}.arb` for each configured locale.
+- Overwrites `app_{locale}.arb` for each locale in `L10N_LOCALES`.
+- **Auto-creates** `app_{locale}.arb` for any sheet column not in `L10N_LOCALES`, if the column has at least one non-empty translation.
+- **Does not update `.env`** — add new locales to `L10N_LOCALES` manually after they appear in the sheet.
 
 ---
 
